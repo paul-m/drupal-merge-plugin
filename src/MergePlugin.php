@@ -1,11 +1,20 @@
 <?php
 
+/**
+ * @file
+ * Contains Mile23\DrupalMerge\MergePlugin.
+ */
+
 namespace Mile23\DrupalMerge;
 
 use Composer\Factory;
+use Composer\Package\RootPackageInterface;
 use Drupal\Core\Extension\ExtensionDiscovery;
 use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
 
+/**
+ * Extension of Wikimedia\Composer\MergePlugin for Drupal-specific use-cases.
+ */
 class MergePlugin extends WikimediaMergePlugin {
 
   /**
@@ -58,11 +67,15 @@ class MergePlugin extends WikimediaMergePlugin {
   }
 
   /**
+   * Perform the merge for Drupal extensions.
    *
    * @param string $root_dir
+   *   Root directory of the Drupal installation. Usually this is the same as
+   *   the directory where the composer.json file lives, but it might not be.
    * @param Package\RootPackageInterface $root_package
+   *   The package into which to merge the discovered composer.json files.
    */
-  protected function mergeModuleDependenciesForRoot($root_dir, $root_package) {
+  protected function mergeModuleDependenciesForRoot($root_dir, RootPackageInterface $root_package) {
     // Because Drupal is bad at isolation, we have to minimally 'bootstrap' it.
     $this->bootstrapDrupal($root_dir);
 
@@ -87,7 +100,11 @@ class MergePlugin extends WikimediaMergePlugin {
   }
 
   /**
+   * Get a list of all modules currently managed by the root package.
+   *
    * @return Composer\Package\PackageInterface[]
+   *   Composer packages representing Drupal modules managed in the root
+   *   package.
    */
   protected function getComposerManagedModules() {
     $local_repository = $this->composer->getRepositoryManager()->getLocalRepository();

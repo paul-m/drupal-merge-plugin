@@ -15,25 +15,45 @@ use Composer\Package\RootPackageInterface;
  */
 class MergePluginTest extends \PHPUnit_Framework_TestCase {
 
-  protected function getDrupalFilesystemStructure() {
+  /**
+   * @return array
+   *   - Expected number of composer.json files found.
+   *   - Filesystem array. Suitable for use with vfsStream.
+   */
+  public function provideModuleFilesystem() {
+    $composer_count = 0;
     $dirs = [
       'modules' => [
         'deps' => [],
         'no_deps' => [],
-      ]
+      ],
+      'sites' => [
+        'all' => [
+          'modules' => [
+            'site_deps' => [],
+          ],
+        ],
+      ],
     ];
     $dirs['modules']['no_deps']['no_deps.info.yml'] = "name: No Deps\ntype: module";
     $dirs['modules']['deps']['deps.info.yml'] = "name: Deps\ntype: module";
     $dirs['modules']['deps']['composer.json'] = "{\"name\": \"paul/test\",\"require\": {\"vendor/test\": \"version@dev\"}}";
-    return $dirs;
+    $composer_count++;
+    $dirs['sites']['all']['modules']['site_deps']['site_deps.info.yml'] = "name: Sites All Deps\ntype: module";
+    $dirs['sites']['all']['modules']['site_deps']['composer.json'] = "{\"name\": \"paul/test\",\"require\": {\"vendor/test\": \"version@dev\"}}";
+    $composer_count++;
+    return [
+      [$composer_count, $dirs],
+    ];
   }
 
   /**
    * @covers ::mergeModuleDependenciesForRoot
+   * @dataProvider provideModuleFilesystem
    */
-  public function testMergeModuleDependenciesForRoot() {
+  public function testMergeModuleDependenciesForRoot($expected_composer_count, $filesystem) {
     // Gather our filesystem.
-    vfsStream::setup('test', NULL, $this->getDrupalFilesystemStructure());
+    vfsStream::setup('test', NULL, $filesystem);
 
     // Make a mock root package.
     $mock_root_package = $this->getMockBuilder(RootPackageInterface::class)
@@ -50,7 +70,7 @@ class MergePluginTest extends \PHPUnit_Framework_TestCase {
     $merge_plugin->expects($this->once())
       ->method('bootstrapDrupal')
       ->with(vfsStream::url('test'));
-    $merge_plugin->expects($this->once())
+    $merge_plugin->expects($this->exactly($expected_composer_count))
       ->method('mergeFile')
       ->with($mock_root_package);
 

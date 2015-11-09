@@ -20,5 +20,5 @@ At the command line, type this:
 
 This pattern will search for composer.json files within the dependencies of your Drupal project, and then try to satisfy them. If they can't be satisfied (due to version constraints, etc.) then Composer will tell you.
 
-Drupal modules could specify that they depend on this plugin. This is an anti-pattern, since this plugin's behavior very likely conflicts with other Composer solutions built by the Drupal community.
+Drupal modules could specify that they depend on this plugin. However, in the context of Drupalisms, this would be an anti-pattern, since this plugin's behavior very likely conflicts with other Composer solutions built by the Drupal community.
 

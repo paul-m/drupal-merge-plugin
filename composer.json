@@ -1,0 +1,22 @@
+{
+    "name": "mile23/drupal-merge-plugin",
+    "description": "Dependency discovery for Drupal contrib projects.",
+    "type": "plugin",
+    "license": "GPL-2+",
+    "authors": [
+        {
+            "name": "Paul Mitchum",
+            "email": "paul@mile23.com"
+        }
+    ],
+    "require": {
+        "wikimedia/composer-merge-plugin": "^1.3"
+    },
+    "require-dev": {
+        "composer/composer": "1.0.*@dev",
+        "phpunit/phpunit": "~4.0"
+    },
+    "extra": {
+        "class": "Drupal\\Composer\\DrupalMergePlugin"
+    }
+}

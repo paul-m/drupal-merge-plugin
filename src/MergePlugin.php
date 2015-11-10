@@ -119,7 +119,7 @@ class MergePlugin extends WikimediaMergePlugin {
       $package = $op->getPackage()->getName();
       if ($package === self::PACKAGE_NAME) {
         // We've duplicated this method so that we can output our own name.
-        $this->logger->info(self::PACKAGE_NAME . ' installed');
+//        $this->logger->info(self::PACKAGE_NAME . ' installed');
         $this->state->setFirstInstall(true);
         $this->state->setLocked(
           $event->getComposer()->getLocker()->isLocked()

@@ -41,6 +41,14 @@ class MergePlugin extends WikimediaMergePlugin {
   /**
    * {@inheritdoc}
    */
+  public function activate(Composer $composer, IOInterface $io) {
+    parent::activate($composer, $io);
+    $this->logger = new Logger('drupal-merge-plugin', $io);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getSubscribedEvents() {
     return array_merge(
       parent::getSubscribedEvents(), [
@@ -98,6 +106,24 @@ class MergePlugin extends WikimediaMergePlugin {
 
     // Merge module dependencies.
     $this->mergeForDrupalRootProject($this->composer->getPackage());
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function onPostPackageInstall(PackageEvent $event) {
+    $op = $event->getOperation();
+    if ($op instanceof InstallOperation) {
+      $package = $op->getPackage()->getName();
+      if ($package === self::PACKAGE_NAME) {
+        // We've duplicated this method so that we can output our own name.
+        $this->logger->info(self::PACKAGE_NAME . ' installed');
+        $this->state->setFirstInstall(true);
+        $this->state->setLocked(
+          $event->getComposer()->getLocker()->isLocked()
+        );
+      }
+    }
   }
 
   /**

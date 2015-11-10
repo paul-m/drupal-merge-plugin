@@ -11,8 +11,6 @@ use Composer\Factory;
 use Composer\Package\RootPackageInterface;
 use Drupal\Core\Extension\ExtensionDiscovery;
 use Drupal\Core\DrupalKernel;
-use Drupal\Core\Config\BootstrapConfigStorageFactory;
-use Drupal\Core\Config\NullStorage;
 use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
 
 /**
@@ -33,7 +31,7 @@ class MergePlugin extends WikimediaMergePlugin {
   }
 
   /**
-   * Helper method for pulling in Drupal's dependencies.
+   * Helper method for pulling in dependencies.
    *
    * Since bootstrap.inc is a dependency of ExtensionDiscovery, we have to
    * require it. Drupal core is likely in it's normal place, but it could also
@@ -104,7 +102,7 @@ class MergePlugin extends WikimediaMergePlugin {
   /**
    * Attempt to gather the list of enabled modules.
    *
-   * @param string $root_dir
+   * @param $autoloader
    *
    * @return \Drupal\Core\Extension\Extension[]
    *   Associative array of Drupal extension objects, keyed by module name, or

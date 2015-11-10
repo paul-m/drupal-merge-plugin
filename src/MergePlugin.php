@@ -7,9 +7,23 @@
 
 namespace Mile23\DrupalMerge;
 
+use Composer\Composer;
+use Composer\DependencyResolver\Operation\InstallOperation;
+use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Factory;
+use Composer\Installer;
+use Composer\Installer\InstallerEvent;
+use Composer\Installer\InstallerEvents;
+use Composer\Installer\PackageEvent;
+use Composer\Installer\PackageEvents;
+use Composer\IO\IOInterface;
+use Composer\Package\RootPackage;
 use Composer\Package\RootPackageInterface;
+use Composer\Plugin\CommandEvent;
+use Composer\Plugin\PluginEvents;
+use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
+use Composer\Script\ScriptEvents;
 use Drupal\Core\Extension\ExtensionDiscovery;
 use Drupal\Core\DrupalKernel;
 use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
@@ -27,31 +41,63 @@ class MergePlugin extends WikimediaMergePlugin {
   /**
    * {@inheritdoc}
    */
-  public function onInstallUpdateOrDump(Event $event) {
-    parent::onInstallUpdateOrDump($event);
-
-    // If we're not a Drupal project, then there's nothing left to do.
-    if (!$this->isDrupalProject()) {
-      return;
-    }
-    // Make assumptions about the location of the root directory. This should be
-    // DRUPAL_ROOT.
-    $root_dir = realpath(dirname(Factory::getComposerFile()));
-
-    // Merge modules' dependencies.
-    $this->mergeModuleDependenciesForRoot($root_dir, $this->composer->getPackage());
+  public static function getSubscribedEvents() {
+    return array_merge(
+      parent::getSubscribedEvents(), [
+      // We add package pre- events because Composer doesn't store our
+      // dependencies. Therefore we have to rebuild every time we do anything.
+      PackageEvents::PRE_PACKAGE_INSTALL => 'onDrupalPackageEvent',
+      PackageEvents::PRE_PACKAGE_UNINSTALL => 'onDrupalPackageEvent',
+      PackageEvents::PRE_PACKAGE_UPDATE => 'onDrupalPackageEvent',
+      // We also want to be able to brag.
+      PluginEvents::COMMAND => 'onCommand',
+      ]
+    );
   }
 
   /**
-   * Determine whether the package being installed/updated is a Drupal project.
+   * Helper method to do the Drupal dependency merging.
    *
-   * @return bool
-   *   TRUE if the package is named drupal/drupal and of type 'project', FALSE
-   *   otherwise.
+   * @param RootPackageInterface $package
    */
-  protected function isDrupalProject() {
-    $package = $this->composer->getPackage();
-    return $package->getName() == 'drupal/drupal' && $package->getType() == 'project';
+  protected function mergeForDrupalRootProject(RootPackageInterface $package) {
+    // Determine whether the package is a Drupal project.
+    if ($package->getName() == 'drupal/drupal' && $package->getType() == 'project') {
+      // @todo: Yes, there has to be a better way to get the composer.json file.
+      $root_dir = realpath(dirname(Factory::getComposerFile()));
+      // Perform the merge.
+      $this->mergeModuleDependenciesForRoot($root_dir, $package);
+    }
+  }
+
+  /**
+   * Handle events dealing only with packages.
+   *
+   * @param PackageEvent $e
+   */
+  public function onDrupalPackageEvent(PackageEvent $e) {
+    $this->mergeForDrupalRootProject($this->composer->getPackage());
+  }
+
+  /**
+   * Tell everyone we're here.
+   *
+   * @param CommandEvent $e
+   */
+  public function onCommand(CommandEvent $e) {
+    $output = $e->getOutput();
+    $output->writeln('Using ' . self::PACKAGE_NAME);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function onInstallUpdateOrDump(Event $event) {
+    // Give Wikimedia a chance to do it's thing.
+    parent::onInstallUpdateOrDump($event);
+
+    // Merge module dependencies.
+    $this->mergeForDrupalRootProject($this->composer->getPackage());
   }
 
   /**

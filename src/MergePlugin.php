@@ -139,10 +139,13 @@ class MergePlugin extends WikimediaMergePlugin {
    */
   protected function bootstrapDrupal($root_dir) {
     $bootstrap_inc = $root_dir . '/core/includes/bootstrap.inc';
+    $drupal_container = $root_dir . '/core/lib/Drupal/Drupal.php';
     if (!file_exists($bootstrap_inc)) {
       $bootstrap_inc = $root_dir . '/vendor/drupal/core/includes/bootstrap.inc';
+      $drupal_container = $root_dir . '/vendor/drupal/core/lib/Drupal/Drupal.php';
     }
     require_once $bootstrap_inc;
+    require_once $drupal_container;
   }
 
   /**

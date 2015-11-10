@@ -25,5 +25,8 @@
         "psr-4": {
             "Mile23\\DrupalMerge\\Test\\": "tests/"
         }
+    },
+    "scripts": {
+      "test": "phpunit"
     }
 }

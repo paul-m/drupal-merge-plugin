@@ -42,10 +42,10 @@ class MergePlugin extends WikimediaMergePlugin {
   /**
    * {@inheritdoc}
    */
-  public function activate(Composer $composer, IOInterface $io) {
+/*  public function activate(Composer $composer, IOInterface $io) {
     parent::activate($composer, $io);
     $this->logger = new Logger('drupal-merge-plugin', $io);
-  }
+  }*/
 
   /**
    * {@inheritdoc}

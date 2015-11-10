@@ -139,16 +139,20 @@ class MergePlugin extends WikimediaMergePlugin {
    *   Path to DRUPAL_ROOT.
    */
   protected function bootstrapDrupal($root_dir) {
-    // Try Drupal's root autoloader.
-    $bootstrap = $root_dir . '/autoload.php';
-    if (file_exists($bootstrap)) {
-      require_once $bootstrap;
+    if (!class_exists('\Drupal')) {
+      // Try Drupal's root autoloader.
+      $bootstrap = $root_dir . '/autoload.php';
+      if (file_exists($bootstrap)) {
+        require_once $bootstrap;
+      }
     }
-    $bootstrap_inc = $root_dir . '/core/includes/bootstrap.inc';
-    if (!file_exists($bootstrap_inc)) {
-      $bootstrap_inc = $root_dir . '/vendor/drupal/core/includes/bootstrap.inc';
+    if (!function_exists('drupal_get_profile')) {
+      $bootstrap_inc = $root_dir . '/core/includes/bootstrap.inc';
+      if (!file_exists($bootstrap_inc)) {
+        $bootstrap_inc = $root_dir . '/vendor/drupal/core/includes/bootstrap.inc';
+      }
+      require_once $bootstrap_inc;
     }
-    require_once $bootstrap_inc;
   }
 
   /**

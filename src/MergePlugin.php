@@ -26,6 +26,7 @@ use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Drupal\Core\Extension\ExtensionDiscovery;
 use Drupal\Core\DrupalKernel;
+use Wikimedia\Composer\Logger;
 use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
 
 /**

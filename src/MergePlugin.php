@@ -9,6 +9,7 @@ namespace Mile23\DrupalMerge;
 
 use Composer\Factory;
 use Composer\Package\RootPackageInterface;
+use Composer\Script\Event;
 use Drupal\Core\Extension\ExtensionDiscovery;
 use Drupal\Core\DrupalKernel;
 use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
@@ -17,6 +18,29 @@ use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
  * Extension of Wikimedia\Composer\MergePlugin for Drupal-specific use-cases.
  */
 class MergePlugin extends WikimediaMergePlugin {
+
+  /**
+   * Offical package name
+   */
+  const PACKAGE_NAME = 'mile23/drupal-merge-plugin';
+
+  /**
+   * {@inheritdoc}
+   */
+  public function onInstallUpdateOrDump(Event $event) {
+    parent::onInstallUpdateOrDump($event);
+
+    // If we're not a Drupal project, then there's nothing left to do.
+    if (!$this->isDrupalProject()) {
+      return;
+    }
+    // Make assumptions about the location of the root directory. This should be
+    // DRUPAL_ROOT.
+    $root_dir = realpath(dirname(Factory::getComposerFile()));
+
+    // Merge modules' dependencies.
+    $this->mergeModuleDependenciesForRoot($root_dir, $this->composer->getPackage());
+  }
 
   /**
    * Determine whether the package being installed/updated is a Drupal project.
@@ -46,25 +70,6 @@ class MergePlugin extends WikimediaMergePlugin {
       $bootstrap_inc = $root_dir . '/vendor/drupal/core/includes/bootstrap.inc';
     }
     require_once $bootstrap_inc;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function mergeIncludes(array $include_patterns) {
-    // Let the parent do its job first.
-    parent::mergeIncludes($include_patterns);
-
-    // If we're not a Drupal project, then there's nothing left to do.
-    if (!$this->isDrupalProject()) {
-      return;
-    }
-    // Make assumptions about the location of the root directory. This should be
-    // DRUPAL_ROOT.
-    $root_dir = realpath(dirname(Factory::getComposerFile()));
-
-    // Merge modules' dependencies.
-    $this->mergeModuleDependenciesForRoot($root_dir, $this->composer->getPackage());
   }
 
   /**
@@ -114,8 +119,7 @@ class MergePlugin extends WikimediaMergePlugin {
       $kernel->setSitePath('sites/default');
       $kernel->boot();
       return $kernel->getContainer()->get('module_handler')->getModuleList();
-    }
-    catch (\Exception $e) {
+    } catch (\Exception $e) {
       return [];
     }
   }

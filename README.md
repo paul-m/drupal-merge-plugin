@@ -1,20 +1,26 @@
 drupal-merge-plugin
 ===
 
+Note: This project is in development and should not be used in production at this time.
+
 What?
 --
 
 `drupal-merge-plugin` is a Composer plugin that allows Drupal modules to specify their own Composer-based dependencies.
 
-`drupal-merge-plugin` is highly opinionated. It is designed to be useful as part of a low-dependency build phase for Drupal sites which aren't expected to have multiple vendor directories, or different dependency requirements per multisite site.
+`drupal-merge-plugin` is highly opinionated. It is designed to be useful as part of a low-dependency build phase for Drupal installations which aren't expected to have multiple vendor directories, or different dependency requirements per multisite site.
 
 The fact that the previous sentence is almost 90% Drupalism illustrates why this tool is opinionated.
 
-Basically: If you are using Drupal in multisite mode, and you have many conflicting dependencies you believe shouldn't conflict, then don't use this plugin.
+Basically: If you are using Drupal in multisite mode, and you have many conflicting dependencies you believe shouldn't conflict, or you have multiple vendor directories as a dependency solution, then don't use this plugin.
 
-It sits atop the Wikimedia project's composer-merge-plugin, and inherits that project's behaviors. This means your root Composer package can specify external `composer.json` files to load, using wildcard paths. The top-level Drupal project's `composer.json` file does this.
+Note that this plugin is fully compatible with Drupal multisite. It will discover and reconcile all dependencies for all modules present in the Drupal installation, across the different sites. They will all share the same `vendor/` directory where other Drupal dependencies reside.
 
-You can read the documentation for Wikimedia's composer-merge-plugin here: https://github.com/wikimedia/composer-merge-plugin
+If this behavior is undesirable for your needs, then use another tool.
+
+It sits atop the Wikimedia project's `composer-merge-plugin`, and inherits that project's behaviors. This means your root Composer package can specify external `composer.json` files to load, using wildcard paths. The top-level Drupal project's `composer.json` file does this.
+
+You can read the documentation for Wikimedia's `composer-merge-plugin` here: https://github.com/wikimedia/composer-merge-plugin
 
 
 How?
@@ -27,11 +33,11 @@ At the command line, type this:
 
 The first line causes your Drupal project to use `drupal-merge-plugin`.
 
-The second life is where you specify your dependencies as needed.
+The second line is where you specify your dependencies as needed.
 
 Once you're using this plugin, it will search for `composer.json` files within the dependencies of your Drupal project, and then try to satisfy them. If they can't be satisfied (due to version constraints, etc.) then Composer will tell you.
 
-Drupal modules should not specify that they depend on this plugin. In the rest of the Composer world, this would be a reasonable thing to do, but in the context of the many Drupalisms, this would be an anti-pattern. This plugin's behavior very likely conflicts with other Composer solutions built by the Drupal community.
+Drupal modules SHOULD NOT specify that they depend on this plugin. In the rest of the Composer world, this would be a reasonable thing to do, but in the context of the many Drupalisms, this would be an anti-pattern. This plugin's behavior very likely conflicts with other Composer solutions built by the Drupal community.
 
 What Should My Contrib Module's `composer.json` File Look Like?
 --

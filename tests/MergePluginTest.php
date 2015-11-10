@@ -2,11 +2,9 @@
 
 namespace Mile23\DrupalMerge\Test;
 
+use Composer\Package\RootPackageInterface;
 use Mile23\DrupalMerge\MergePlugin;
 use org\bovigo\vfs\vfsStream;
-use Wikimedia\Composer\Merge\PluginState;
-use Composer\Composer;
-use Composer\Package\RootPackageInterface;
 
 /**
  * @coversDefaultClass Mile23\DrupalMerge\MergePlugin
@@ -42,6 +40,7 @@ class MergePluginTest extends \PHPUnit_Framework_TestCase {
     $dirs['sites']['all']['modules']['site_deps']['site_deps.info.yml'] = "name: Sites All Deps\ntype: module";
     $dirs['sites']['all']['modules']['site_deps']['composer.json'] = "{\"name\": \"paul/test\",\"require\": {\"vendor/test\": \"version@dev\"}}";
     $composer_count++;
+
     return [
       [$composer_count, $dirs],
     ];
@@ -79,13 +78,6 @@ class MergePluginTest extends \PHPUnit_Framework_TestCase {
     $ref_merge = new \ReflectionMethod($merge_plugin, 'mergeModuleDependenciesForRoot');
     $ref_merge->setAccessible(TRUE);
     $ref_merge->invokeArgs($merge_plugin, [vfsStream::url('test'), $mock_root_package]);
-  }
-
-  /**
-   * @covers ::isDrupalProject
-   */
-  public function testIsDrupalProject() {
-    $this->markTestIncomplete();
   }
 
 }

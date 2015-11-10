@@ -10,6 +10,9 @@ namespace Mile23\DrupalMerge;
 use Composer\Factory;
 use Composer\Package\RootPackageInterface;
 use Drupal\Core\Extension\ExtensionDiscovery;
+use Drupal\Core\DrupalKernel;
+use Drupal\Core\Config\BootstrapConfigStorageFactory;
+use Drupal\Core\Config\NullStorage;
 use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
 
 /**
@@ -86,9 +89,8 @@ class MergePlugin extends WikimediaMergePlugin {
     $discovery = new ExtensionDiscovery($root_dir, FALSE);
 
     // Scan for modules.
-    // @todo: Determine whether we should scan for profiles, themes, test
-    // modules.
-    $modules = $discovery->scan('module', FALSE);
+    // @todo: Determine whether we should scan for profiles, themes.
+    $modules = $discovery->scan('module', $root_package->isDev());
 
     foreach ($modules as $module_name => $module) {
       $local_composer_file = dirname($module->getPathname()) . '/composer.json';
@@ -96,6 +98,27 @@ class MergePlugin extends WikimediaMergePlugin {
         // Have the plugin merge the composer.json file.
         $this->mergeFile($root_package, $local_composer_file);
       }
+    }
+  }
+
+  /**
+   * Attempt to gather the list of enabled modules.
+   *
+   * @param string $root_dir
+   *
+   * @return \Drupal\Core\Extension\Extension[]
+   *   Associative array of Drupal extension objects, keyed by module name, or
+   *   empty array if no modules could be gleaned.
+   */
+  protected function gleanEnabledModules($autoloader) {
+    try {
+      $kernel = new DrupalKernel('install', $autoloader);
+      $kernel->setSitePath('sites/default');
+      $kernel->boot();
+      return $kernel->getContainer()->get('module_handler')->getModuleList();
+    }
+    catch (\Exception $e) {
+      return [];
     }
   }
 

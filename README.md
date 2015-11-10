@@ -36,7 +36,7 @@ Drupal modules should not specify that they depend on this plugin. In the rest o
 What Should My Contrib Module's `composer.json` File Look Like?
 --
 
-You can supply a `composer.json` file per module, at any folder depth.
+You can supply a `composer.json` file per module, at any folder depth supported by normal Drupal module discovery.
 
 Your `composer.json` file must be in the same directory as the module's `.info.yml` file.
 

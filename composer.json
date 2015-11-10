@@ -1,7 +1,7 @@
 {
     "name": "mile23/drupal-merge-plugin",
     "description": "Dependency discovery for Drupal contrib projects.",
-    "type": "plugin",
+    "type": "composer-plugin",
     "extra": {
         "class": "Mile23\\DrupalMerge\\MergePlugin"
     },

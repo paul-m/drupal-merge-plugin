@@ -142,6 +142,9 @@ class MergePlugin extends WikimediaMergePlugin {
    *   Path to DRUPAL_ROOT.
    */
   protected function bootstrapDrupal($root_dir) {
+    if (!class_exists('\Drupal')) {
+      require_once $root_dir . '/autoload.php';
+    }
     if (!function_exists('drupal_get_profile')) {
       $bootstrap_inc = $root_dir . '/core/includes/bootstrap.inc';
       if (!file_exists($bootstrap_inc)) {

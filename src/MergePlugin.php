@@ -71,6 +71,9 @@ class MergePlugin extends WikimediaMergePlugin {
    * @param RootPackageInterface $package
    */
   protected function mergeForDrupalRootProject(RootPackageInterface $package) {
+    if ($this->state->isFirstInstall()) {
+      return;
+    }
     // Determine whether the package is a Drupal project.
     if ($package->getName() == 'drupal/drupal' && $package->getType() == 'project') {
       // @todo: Yes, there has to be a better way to get the composer.json file.
@@ -139,7 +142,7 @@ class MergePlugin extends WikimediaMergePlugin {
    *   Path to DRUPAL_ROOT.
    */
   protected function bootstrapDrupal($root_dir) {
-    if (!class_exists('Drupal')) {
+    if (!class_exists('\Drupal')) {
       // Try Drupal's root autoloader.
       $bootstrap = $root_dir . '/autoload.php';
       if (file_exists($bootstrap)) {

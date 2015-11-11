@@ -45,6 +45,8 @@ class MergePlugin extends WikimediaMergePlugin {
    * {@inheritdoc}
    */
   /*  public function activate(Composer $composer, IOInterface $io) {
+    // Ideally we'd be able to give our logger a nice name, but autoloading
+    // doesn't always work the way we'd hope.
     parent::activate($composer, $io);
     $this->logger = new Logger('drupal-merge-plugin', $io);
     } */
@@ -67,30 +69,12 @@ class MergePlugin extends WikimediaMergePlugin {
   }
 
   /**
-   * Helper method to do the Drupal dependency merging.
-   *
-   * @param RootPackageInterface $package
-   */
-  protected function mergeForDrupalRootProject(RootPackageInterface $package) {
-    if ($this->state->isFirstInstall()) {
-      return;
-    }
-    // Determine whether the package is a Drupal project.
-    if ($package->getName() == 'drupal/drupal' && $package->getType() == 'project') {
-      // @todo: Yes, there has to be a better way to get the composer.json file.
-      $root_dir = realpath(dirname(Factory::getComposerFile()));
-      // Perform the merge.
-      $this->mergeModuleDependenciesForRoot($root_dir, $package);
-    }
-  }
-
-  /**
    * Handle events dealing only with packages.
    *
    * @param PackageEvent $e
    */
   public function onDrupalPackageEvent(PackageEvent $e) {
-    $this->mergeForDrupalRootProject($this->composer->getPackage());
+    $this->mergeForDrupalRootPackage($this->composer->getPackage());
   }
 
   /**
@@ -100,30 +84,30 @@ class MergePlugin extends WikimediaMergePlugin {
    */
   public function onCommand(CommandEvent $e) {
     $output = $e->getOutput();
-    $output->writeln('Using ' . self::PACKAGE_NAME);
+    $output->writeln('. Using ' . self::PACKAGE_NAME);
   }
 
   /**
    * {@inheritdoc}
    */
   public function onInstallUpdateOrDump(Event $event) {
-    // Give Wikimedia a chance to do it's thing.
-    //parent::onInstallUpdateOrDump($event);
-
-    // Merge module dependencies.
-    $this->mergeForDrupalRootProject($this->composer->getPackage());
+    // Wikimedia is also registered as a plugin, so it will have a chance to
+    // merge it's dependencies. Here we override and add our module
+    // dependencies.
+    $this->mergeForDrupalRootPackage($this->composer->getPackage());
   }
 
   /**
    * {@inheritdoc}
    */
   public function onPostPackageInstall(PackageEvent $event) {
+    // This is a duplicate of Wikimedia's onPostPackageInstall.
+    // @todo: Figure out how to make Logger available.
     $op = $event->getOperation();
     if ($op instanceof InstallOperation) {
       $package = $op->getPackage()->getName();
       if ($package === self::PACKAGE_NAME) {
-        // We've duplicated this method so that we can output our own name.
-//        $this->logger->info(self::PACKAGE_NAME . ' installed');
+        // $this->logger->info(self::PACKAGE_NAME . ' installed');
         $this->state->setFirstInstall(true);
         $this->state->setLocked(
           $event->getComposer()->getLocker()->isLocked()
@@ -133,30 +117,31 @@ class MergePlugin extends WikimediaMergePlugin {
   }
 
   /**
-   * Helper method for pulling in dependencies.
+   * Helper method to do the Drupal dependency merging.
    *
-   * Since bootstrap.inc is a dependency of ExtensionDiscovery, we have to
-   * require it. Drupal core is likely in it's normal place, but it could also
-   * be under vendor/.
-   *
-   * @param string $root_dir
-   *   Path to DRUPAL_ROOT.
+   * @param RootPackageInterface $package
    */
-  protected function bootstrapDrupal($root_dir) {
-    if (!class_exists('\Drupal')) {
-      require_once $root_dir . '/autoload.php';
+  protected function mergeForDrupalRootPackage(RootPackageInterface $package) {
+    if ($this->state->isFirstInstall()) {
+      return;
     }
-    if (!function_exists('drupal_get_profile')) {
-      $bootstrap_inc = $root_dir . '/core/includes/bootstrap.inc';
-      if (!file_exists($bootstrap_inc)) {
-        $bootstrap_inc = $root_dir . '/vendor/drupal/core/includes/bootstrap.inc';
-      }
-      require_once $bootstrap_inc;
+    // Determine whether the package is a Drupal project.
+    if ($package->getName() == 'drupal/drupal' && $package->getType() == 'project') {
+      // @todo: There has to be a better way to get the root directory.
+      $root_dir = realpath(dirname(Factory::getComposerFile()));
+      // Perform the merge.
+      $this->mergeModuleDependenciesForRoot($root_dir, $package);
+      return;
     }
+    $this->logger->debug('merge rejected for: ' . $package->getName());
   }
 
   /**
    * Perform the merge for Drupal extensions.
+   *
+   * Given a root directory for the Drupal installation and a Composer package
+   * representing the root installation, merge composer.json files from
+   * discovered extensions/modules.
    *
    * @param string $root_dir
    *   Root directory of the Drupal installation. Usually this is the same as
@@ -165,13 +150,7 @@ class MergePlugin extends WikimediaMergePlugin {
    *   The package into which to merge the discovered composer.json files.
    */
   protected function mergeModuleDependenciesForRoot($root_dir, RootPackageInterface $root_package) {
-    // Because Drupal is bad at isolation, we have to minimally 'bootstrap' it.
-    $this->bootstrapDrupal($root_dir);
-
-    // Create our ExtensionDiscovery. We set $use_file_cache to FALSE so as to
-    // avoid any dependencies involved in the caching system. Note that as of
-    // this writing there is still a bug in the static file caching done by
-    // ExtensionDiscovery: https://www.drupal.org/node/2605654
+    // We're using our own fork of Drupal's ExtensionDiscovery.
     $discovery = new ExtensionDiscovery($root_dir, FALSE);
 
     // Scan for modules.
@@ -188,27 +167,9 @@ class MergePlugin extends WikimediaMergePlugin {
   }
 
   /**
-   * Attempt to gather the list of enabled modules.
-   *
-   * @param $autoloader
-   *
-   * @return \Drupal\Core\Extension\Extension[]
-   *   Associative array of Drupal extension objects, keyed by module name, or
-   *   empty array if no modules could be gleaned.
-   */
-  protected function gleanEnabledModules($autoloader) {
-    try {
-      $kernel = new DrupalKernel('install', $autoloader);
-      $kernel->setSitePath('sites/default');
-      $kernel->boot();
-      return $kernel->getContainer()->get('module_handler')->getModuleList();
-    } catch (\Exception $e) {
-      return [];
-    }
-  }
-
-  /**
    * Get a list of all modules currently managed by the root package.
+   *
+   * Currently unused.
    *
    * @return Composer\Package\PackageInterface[]
    *   Composer packages representing Drupal modules managed in the root
@@ -225,19 +186,6 @@ class MergePlugin extends WikimediaMergePlugin {
       }
     }
     return $composer_managed_modules;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function onPostInstallOrUpdate(Event $event) {
-    // If this is the first install, we can't rely on Drupal being autoloaded.
-    // So we have to do some footwork here and then allow Wikimedia's event
-    // handler to take care of the rest.
-    if ($this->state->isFirstInstall()) {
-      $this->bootstrapDrupal(\realpath(\dirname(Factory::getComposerFile())));
-    }
-    parent::onPostInstallOrUpdate($event);
   }
 
 }

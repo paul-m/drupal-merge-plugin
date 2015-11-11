@@ -63,11 +63,8 @@ class MergePluginTest extends \PHPUnit_Framework_TestCase {
     // try to require bootstrap.inc from the vfsStream.
     $merge_plugin = $this->getMockBuilder(MergePlugin::class)
       ->disableOriginalConstructor()
-      ->setMethods(['bootstrapDrupal', 'mergeFile'])
+      ->setMethods(['mergeFile'])
       ->getMock();
-    $merge_plugin->expects($this->once())
-      ->method('bootstrapDrupal')
-      ->with(vfsStream::url('test'));
     $merge_plugin->expects($this->exactly($expected_composer_count))
       ->method('mergeFile')
       ->with($mock_root_package);

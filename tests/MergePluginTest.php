@@ -59,9 +59,6 @@ class MergePluginTest extends \PHPUnit_Framework_TestCase {
       ->disableOriginalConstructor()
       ->getMockForAbstractClass();
 
-    // We have to require bootstrap.inc because neither our mock nor Drupal can.
-    require_once __DIR__ . '/../vendor/drupal/core/includes/bootstrap.inc';
-
     // Mock the merge plugin. We have to stub bootstrapDrupal so that it won't
     // try to require bootstrap.inc from the vfsStream.
     $merge_plugin = $this->getMockBuilder(MergePlugin::class)

@@ -7,6 +7,8 @@
 
 namespace Mile23\DrupalMerge;
 
+use Mile23\DrupalMerge\Extension\ExtensionDiscovery;
+
 use Composer\Composer;
 use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\DependencyResolver\Operation\UninstallOperation;
@@ -25,7 +27,6 @@ use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
-use Drupal\Core\Extension\ExtensionDiscovery;
 use Drupal\Core\DrupalKernel;
 use Wikimedia\Composer\Logger;
 use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
@@ -107,7 +108,7 @@ class MergePlugin extends WikimediaMergePlugin {
    */
   public function onInstallUpdateOrDump(Event $event) {
     // Give Wikimedia a chance to do it's thing.
-    parent::onInstallUpdateOrDump($event);
+    //parent::onInstallUpdateOrDump($event);
 
     // Merge module dependencies.
     $this->mergeForDrupalRootProject($this->composer->getPackage());

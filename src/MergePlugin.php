@@ -43,10 +43,10 @@ class MergePlugin extends WikimediaMergePlugin {
   /**
    * {@inheritdoc}
    */
-/*  public function activate(Composer $composer, IOInterface $io) {
+  /*  public function activate(Composer $composer, IOInterface $io) {
     parent::activate($composer, $io);
     $this->logger = new Logger('drupal-merge-plugin', $io);
-  }*/
+    } */
 
   /**
    * {@inheritdoc}
@@ -221,6 +221,19 @@ class MergePlugin extends WikimediaMergePlugin {
       }
     }
     return $composer_managed_modules;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function onPostInstallOrUpdate(Event $event) {
+    // If this is the first install, we can't rely on Drupal being autoloaded.
+    // So we have to do some footwork here and then allow Wikimedia's event
+    // handler to take care of the rest.
+    if ($this->state->isFirstInstall()) {
+      $this->bootstrapDrupal(\realpath(\dirname(Factory::getComposerFile())));
+    }
+    parent::onPostInstallOrUpdate($event);
   }
 
 }

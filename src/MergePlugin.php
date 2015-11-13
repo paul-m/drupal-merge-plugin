@@ -73,7 +73,7 @@ class MergePlugin extends WikimediaMergePlugin {
    * @param PackageEvent $e
    */
   public function onDrupalPackageEvent(PackageEvent $e) {
-    $this->logger->info('>> ' . __METHOD__);
+    error_log('>> ' . __METHOD__);
     $this->mergeForDrupalRootPackage($this->composer->getPackage());
   }
 
@@ -83,7 +83,7 @@ class MergePlugin extends WikimediaMergePlugin {
    * @param CommandEvent $e
    */
   public function onCommand(CommandEvent $e) {
-    $this->logger->info('>> ' . __METHOD__);
+    error_log('>> ' . __METHOD__);
     $output = $e->getOutput();
     $output->writeln('. Using ' . self::PACKAGE_NAME);
   }
@@ -92,7 +92,7 @@ class MergePlugin extends WikimediaMergePlugin {
    * {@inheritdoc}
    */
   public function onInstallUpdateOrDump(Event $event) {
-    $this->logger->info('>> ' . __METHOD__);
+    error_log('>> ' . __METHOD__);
     // Wikimedia is also registered as a plugin, so it will have a chance to
     // merge it's dependencies. Here we override and add our module
     // dependencies.
@@ -103,7 +103,7 @@ class MergePlugin extends WikimediaMergePlugin {
    * {@inheritdoc}
    */
   public function onPostPackageInstall(PackageEvent $event) {
-    $this->logger->info('>> ' . __METHOD__);
+    error_log('>> ' . __METHOD__);
     // This is a duplicate of Wikimedia's onPostPackageInstall.
     // @todo: Figure out how to make Logger available.
     $op = $event->getOperation();

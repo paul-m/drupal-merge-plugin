@@ -24,6 +24,18 @@ class Script {
     $event->getIO()->write(' Extensions with composer.json files: ' . implode(', ', array_keys($extensions)));
   }
 
+  public static function listManagedExtensions(Event $event) {
+    $finder = new ComposerFinder();
+    $packages = $finder->getComposerManagedExtensions($event->getComposer());
+
+    $extensions = [];
+    foreach($packages as $package) {
+      $extensions[] = $package->getName();
+    }
+
+    $event->getIO()->write(' Extensions managed by this project: ' . implode(', ', $extensions));
+  }
+
   /**
    * Displays a list of all extensions not present in the project composer.json.
    *

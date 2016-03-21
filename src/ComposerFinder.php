@@ -4,10 +4,6 @@ namespace Mile23\DrupalMerge;
 
 use Composer\Composer;
 use Composer\Package\RootPackageInterface;
-use Composer\Package\PackageInterface;
-use Composer\Package\Loader\JsonLoader;
-use Composer\Package\Loader\ArrayLoader;
-use Composer\Semver\VersionParser;
 use Mile23\DrupalMerge\Extension\ExtensionDiscovery;
 
 class ComposerFinder {
@@ -36,7 +32,8 @@ class ComposerFinder {
 
     $composer_extensions = [];
     foreach ($extensions as $extension_name => $extension) {
-      if (!empty($extension->getComposerJsonFile())) {
+      $json_file = $extension->getComposerJsonFile();
+      if($json_file->exists()) {
         $composer_extensions[$extension_name] = $extension;
       }
     }
@@ -48,7 +45,7 @@ class ComposerFinder {
    *
    * @return Composer\Package\PackageInterface[]
    *   Composer packages representing Drupal modules managed in the root
-   *   package.
+   *   package, keyed by package type.
    */
   public function getComposerManagedExtensions(Composer $composer) {
     $types = ['drupal-module', 'drupal-theme', 'drupal-profile'];
@@ -56,9 +53,10 @@ class ComposerFinder {
     $packages = $local_repository->getPackages();
 
     $composer_managed_extensions = [];
-    foreach ($packages as $installed_dependency) {
-      if (in_array($installed_dependency->getType(), $types)) {
-        $composer_managed_extensions[] = $installed_dependency;
+    foreach ($packages as $package) {
+      $package_type = $package->getType();
+      if (in_array($package_type, $types)) {
+        $composer_managed_extensions[$package_type] = $package;
       }
     }
     return $composer_managed_extensions;
@@ -69,11 +67,11 @@ class ComposerFinder {
    * which aren't present in the project composer.json file.
    *
    * @param string $root_dir
-   * @param \Composer\Package\RootPackageInterface $root_package
+   * @param \Composer\Composer $composer
    *
    * @return \Mile23\DrupalMerge\Extension\Extension[]
    *   Extensions that have composer.json files which are not present in the
-   *   project composer.json file, keyed by package name.
+   *   project composer.json file, keyed by composer package name.
    */
   public function getUnmanagedComposerExtensions($root_dir, Composer $composer) {
     $root_package = $composer->getPackage();
@@ -87,16 +85,12 @@ class ComposerFinder {
     }
     $composer_managed_extensions = [];
 
-    $loader = new ArrayLoader();
-    $json_loader = new JsonLoader($loader);
-
     $unmanaged_extensions = [];
     foreach($composer_extensions as $composer_extension) {
       $json_file = $composer_extension->getComposerJsonFile();
       if ($json_file->exists()) {
-        error_log('json: ' . $json_file->getPath());
-        $package = $json_loader->load($composer_extension->getComposerJsonFile());
-        $package_name = $package->getName();
+        $package_json = $json_file->read();
+        $package_name = isset($package_json['name']) ? $package_json['name'] : '';
         if(!array_key_exists($package_name, $managed_extensions)) {
           $unmanaged_extensions[$package_name] = $composer_extension;
         }

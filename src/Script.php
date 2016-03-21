@@ -2,6 +2,7 @@
 
 namespace Mile23\DrupalMerge;
 
+use Composer\Factory;
 use Composer\Script\Event;
 use Mile23\DrupalMerge\ComposerFinder;
 

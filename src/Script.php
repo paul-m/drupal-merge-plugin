@@ -8,15 +8,18 @@ use Mile23\DrupalMerge\ComposerFinder;
 
 class Script {
 
+  protected static function getRootDir() {
+    // @todo: There has to be a better way to get the root directory.
+    return realpath(dirname(Factory::getComposerFile()));
+  }
+
   public static function listExtensions(Event $event) {
 
     $root_package = $event->getComposer()->getPackage();
-
-    // @todo: There has to be a better way to get the root directory.
-    $root_dir = realpath(dirname(Factory::getComposerFile()));
+    $root_dir = static::getRootDir();
 
     $finder = new ComposerFinder();
-    $extensions = $finder->getComposerModules($root_dir, $root_package);
+    $extensions = $finder->getComposerExtensions($root_dir, $root_package);
 
     $event->getIO()->write(' Extensions with composer.json files: ' . implode(', ', array_keys($extensions)));
   }
@@ -31,26 +34,17 @@ class Script {
    */
   public static function listUnmanagedExtensions(Event $event) {
 
-    $root_package = $event->getComposer()->getPackage();
-
-    // @todo: There has to be a better way to get the root directory.
-    $root_dir = realpath(dirname(Factory::getComposerFile()));
+    $root_dir = static::getRootDir();
 
     $finder = new ComposerFinder();
-    $extensions = array_keys($finder->getComposerModules($root_dir, $root_package));
+    $unmanaged_extensions = $finder->getUnmanagedComposerExtensions($root_dir, $event->getComposer());
 
-    $managed_extensions = ComposerFinder::getComposerManagedModules($event->getComposer());
-
-    $unmanaged_extensions = [];
-    foreach($managed_extensions as $managed) {
-      if ($managed->getType() == 'drupal-module') {
-        if (!in_array($managed->getName(), $extensions)) {
-          $unmanaged_extensions[] = 'foo';
-        }
-      }
+    $extensions = [];
+    foreach ($unmanaged_extensions as $unmanaged_extension) {
+      $extensions[] = $unmanaged_extension->getName();
     }
 
-    $event->getIO()->write(' Unmanaged extensions with composer.json files: ' . implode(', ', array_keys($extensions)));
+    $event->getIO()->write(' Unmanaged extensions with composer.json files: ' . implode(', ', $extensions));
   }
 
 }

@@ -9,6 +9,8 @@
 
 namespace Mile23\DrupalMerge\Extension;
 
+use Composer\Json\JsonFile;
+
 /**
  * Defines an extension (file) object.
  */
@@ -102,6 +104,13 @@ class Extension implements \Serializable {
       return $local_composer_file;
     }
     return '';
+  }
+
+  /**
+   * @return \Composer\Json\JsonFile
+   */
+  public function getComposerJsonFile() {
+    return new JsonFile($this->getComposerJson());
   }
 
   /**

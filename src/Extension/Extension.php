@@ -90,6 +90,21 @@ class Extension implements \Serializable {
   }
 
   /**
+   * Returns the path to the extension's composer.json file, if it exists.
+   *
+   * @return string
+   *   Path of the composer.json file for this extension, or an empty string if
+   *   the file does not exist.
+   */
+  public function getComposerJson() {
+    $local_composer_file = $this->getPath() . '/composer.json';
+    if (file_exists($local_composer_file)) {
+      return $local_composer_file;
+    }
+    return '';
+  }
+
+  /**
    * Returns the relative path of the extension.
    *
    * @return string

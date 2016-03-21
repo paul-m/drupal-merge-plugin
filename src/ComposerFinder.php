@@ -2,6 +2,7 @@
 
 namespace Mile23\DrupalMerge;
 
+use Composer\Package\RootPackageInterface;
 use Mile23\DrupalMerge\Extension\ExtensionDiscovery;
 
 class ComposerFinder {

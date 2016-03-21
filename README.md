@@ -6,19 +6,11 @@ Note: This project is in development and should not be used in production at thi
 What?
 --
 
-`drupal-merge-plugin` is a Composer plugin that allows Drupal modules to specify their own Composer-based dependencies.
-
-`drupal-merge-plugin` is highly opinionated. It is designed to be useful as part of a low-dependency build phase for Drupal installations which aren't expected to have multiple vendor directories, or different dependency requirements per multisite site.
-
-The fact that the previous sentence is almost 90% Drupalism illustrates why this tool is opinionated.
-
-Basically: If you are using Drupal in multisite mode, and you have many conflicting dependencies you believe shouldn't conflict, or you have multiple vendor directories as a dependency solution, then don't use this plugin.
+`drupal-merge-plugin` is a Composer plugin that allows Drupal modules to specify their own Composer-based dependencies without extra infrastructure.
 
 Note that this plugin is fully compatible with Drupal multisite. It will discover and reconcile all dependencies for all modules present in the Drupal installation, across the different sites. They will all share the same `vendor/` directory where other Drupal dependencies reside.
 
-If this behavior is undesirable for your needs, then use another tool.
-
-It sits atop the Wikimedia project's `composer-merge-plugin`, and inherits that project's behaviors. This means your root Composer package can specify external `composer.json` files to load, using wildcard paths. The top-level Drupal project's `composer.json` file does this.
+It builds on the Wikimedia project's `composer-merge-plugin`, and inherits some of that project's behaviors.
 
 You can read the documentation for Wikimedia's `composer-merge-plugin` here: https://github.com/wikimedia/composer-merge-plugin
 
@@ -29,15 +21,35 @@ How?
 At the command line, type this:
 
 	$ composer require mile23/drupal-merge-plugin
+
+This adds the plugin to your Drupal project.
+
+In order to get Drupal extensions using Composer, you must then add the special Drupal Packagist clone to your `repositories` section:
+
+
+	"repositories": {
+        "type": "composer",
+        "url": "https://packagist.drupal-composer.org"
+    },
+
+Then you can add Drupal modules:
+
 	$ composer require drupal/your-module-here
 
-The first line causes your Drupal project to use `drupal-merge-plugin`.
+Why?
+----
 
-The second line is where you specify your dependencies as needed.
+Adding packagist.drupal-composer.org to your composer.json file is enough to help it find Drupal modules, and install them along with their dependencies.
+
+However, if you need to update or re-install (because, for instance, your `vendor/` directory is missing), that won't be enough to manage those dependencies.
+
+With this plugin, that's possible.
 
 Once you're using this plugin, it will search for `composer.json` files within the dependencies of your Drupal project, and then try to satisfy them. If they can't be satisfied (due to version constraints, etc.) then Composer will tell you.
 
-Drupal modules SHOULD NOT specify that they depend on this plugin. In the rest of the Composer world, this would be a reasonable thing to do, but in the context of the many Drupalisms, this would be an anti-pattern. This plugin's behavior very likely conflicts with other Composer solutions built by the Drupal community.
+Drupal modules SHOULD NOT specify that they depend on this plugin. In the rest of the Composer world, this would be a reasonable thing to do, but in the context of the many Drupalisms, this would be an anti-pattern.
+
+This plugin's behavior might also conflict with other Composer solutions built by the Drupal community.
 
 What Should My Contrib Module's `composer.json` File Look Like?
 --
@@ -54,4 +66,4 @@ If your `composer.json` file does not specify `requires` and/or `requires-dev`, 
 
 You should NOT use the `autoload` feature of Composer for your module. Drupal will autoload the module as needed.
 
-Current Drupal best practice is that your module's `type` field be `drupal-module`. This allows the `composer-installer` plugin to place your module in the proper directory. This is unrelated to `drupal-merge-plugin`, but it's a good idea.
+`drupal-merge-plugin` uses the same project type naming convention as `composer-installers`. This means your module's `type` field should be `drupal-module`. This allows the `composer-installer` plugin to place your module in the proper directory, and allows `drupal-merge-plugin` to discover it.

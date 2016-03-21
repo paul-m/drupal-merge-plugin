@@ -2,7 +2,9 @@
 
 namespace Mile23\DrupalMerge;
 
+use Composer\Composer;
 use Composer\Package\RootPackageInterface;
+use Composer\Package\PackageInterface;
 use Mile23\DrupalMerge\Extension\ExtensionDiscovery;
 
 class ComposerFinder {
@@ -30,6 +32,28 @@ class ComposerFinder {
       }
     }
     return $extensions;
+  }
+
+  /**
+   * Get a list of all modules currently managed by the root package.
+   *
+   * Currently unused.
+   *
+   * @return Composer\Package\PackageInterface[]
+   *   Composer packages representing Drupal modules managed in the root
+   *   package.
+   */
+  public static function getComposerManagedModules(Composer $composer) {
+    $local_repository = $composer->getRepositoryManager()->getLocalRepository();
+    $packages = $local_repository->getPackages();
+
+    $composer_managed_modules = [];
+    foreach ($packages as $installed_dependency) {
+      if ($installed_dependency->getType() == 'drupal-module') {
+        $composer_managed_modules[] = $installed_dependency;
+      }
+    }
+    return $composer_managed_modules;
   }
 
 }

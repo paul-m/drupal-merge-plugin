@@ -21,7 +21,7 @@ class Script {
     $finder = new ComposerFinder();
     $extensions = $finder->getComposerExtensions($root_dir, $root_package);
 
-    $event->getIO()->write(' Extensions with composer.json files: ' . implode(', ', array_keys($extensions)));
+    $event->getIO()->write(' Extensions with composer.json files: <info>' . implode(', ', array_keys($extensions)) . '</info>');
   }
 
   public static function listManagedExtensions(Event $event) {
@@ -33,7 +33,7 @@ class Script {
       $extensions[] = $package->getName();
     }
 
-    $event->getIO()->write(' Extensions managed by this project: ' . implode(', ', $extensions));
+    $event->getIO()->write(' Extensions managed by this project: <info>' . implode(', ', $extensions) . '</info>');
   }
 
   /**
@@ -56,7 +56,7 @@ class Script {
       $extensions[] = $unmanaged_extension->getName();
     }
 
-    $event->getIO()->write(' Unmanaged extensions with composer.json files: ' . implode(', ', $extensions));
+    $event->getIO()->write(' Unmanaged extensions with composer.json files: <info>' . implode(', ', $extensions) . '</info>');
   }
 
 }

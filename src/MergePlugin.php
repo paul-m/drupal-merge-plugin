@@ -8,7 +8,6 @@
 namespace Mile23\DrupalMerge;
 
 use Mile23\DrupalMerge\Extension\ExtensionDiscovery;
-
 use Composer\Composer;
 use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\DependencyResolver\Operation\UninstallOperation;
@@ -27,7 +26,6 @@ use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
-use Drupal\Core\DrupalKernel;
 use Wikimedia\Composer\Logger;
 use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
 
@@ -44,12 +42,10 @@ class MergePlugin extends WikimediaMergePlugin {
   /**
    * {@inheritdoc}
    */
-  /*  public function activate(Composer $composer, IOInterface $io) {
-    // Ideally we'd be able to give our logger a nice name, but autoloading
-    // doesn't always work the way we'd hope.
+  public function activate(Composer $composer, IOInterface $io) {
     parent::activate($composer, $io);
     $this->logger = new Logger('drupal-merge-plugin', $io);
-    } */
+  }
 
   /**
    * {@inheritdoc}

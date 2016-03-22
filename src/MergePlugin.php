@@ -126,7 +126,7 @@ class MergePlugin extends WikimediaMergePlugin {
     if ($this->state->isFirstInstall()) {
       return;
     }
-    $packge = $composer->getPackage();
+    $package = $composer->getPackage();
     // Determine whether the package is a Drupal project.
     if ($package->getName() == 'drupal/drupal' && $package->getType() == 'project') {
       // @todo: There has to be a better way to get the root directory.

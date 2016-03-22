@@ -4,6 +4,7 @@ namespace Mile23\DrupalMerge;
 
 use Composer\Composer;
 use Composer\Package\RootPackageInterface;
+use Composer\Repository\WritableRepositoryInterface;
 use Mile23\DrupalMerge\Extension\ExtensionDiscovery;
 
 /**
@@ -59,10 +60,10 @@ class ComposerFinder {
    *   Composer packages representing Drupal modules managed in the root
    *   package, keyed by package type.
    */
-  public function getComposerManagedExtensions(Composer $composer) {
+  public function getComposerManagedExtensions(WritableRepositoryInterface $local_repository) {
     $types = ['drupal-module', 'drupal-theme', 'drupal-profile'];
 
-    $local_repository = $composer->getRepositoryManager()->getLocalRepository();
+//    $local_repository = $composer->getRepositoryManager()->getLocalRepository();
     $packages = $local_repository->getPackages();
 
     $composer_managed_extensions = [];
@@ -95,7 +96,9 @@ class ComposerFinder {
 
     $composer_extensions = $this->getComposerExtensions($root_dir, $root_package->isDev());
 
-    $composer_managed_extensions = $this->getComposerManagedExtensions($composer);
+    $composer_managed_extensions = $this->getComposerManagedExtensions(
+      $composer->getRepositoryManager()->getLocalRepository()
+    );
     $managed_extensions = [];
     foreach ($composer_managed_extensions as $managed_extension) {
       $managed_extensions[$managed_extension->getName()] = $managed_extension;

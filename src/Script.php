@@ -26,7 +26,9 @@ class Script {
 
   public static function listManagedExtensions(Event $event) {
     $finder = new ComposerFinder();
-    $packages = $finder->getComposerManagedExtensions($event->getComposer());
+    $packages = $finder->getComposerManagedExtensions(
+      $event->getComposer()->getRepositoryManager()->getLocalRepository()
+    );
 
     $extensions = [];
     foreach ($packages as $package) {

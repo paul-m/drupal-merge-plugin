@@ -141,9 +141,6 @@ class MergePlugin extends WikimediaMergePlugin {
         $extensions[] = $unmanaged_extension->getName();
       }
 
-
-
-
       $this->mergeExtensionDependenciesForRoot($root_dir, $composer);
       return;
     }

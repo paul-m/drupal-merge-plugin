@@ -19,7 +19,7 @@ class Script {
     $root_dir = static::getRootDir();
 
     $finder = new ComposerFinder();
-    $extensions = $finder->getComposerExtensions($root_dir, $root_package);
+    $extensions = $finder->getComposerExtensions($root_dir, $root_package->isDev());
 
     $event->getIO()->write(' Extensions with composer.json files: <info>' . implode(', ', array_keys($extensions)) . '</info>');
   }
@@ -29,7 +29,7 @@ class Script {
     $packages = $finder->getComposerManagedExtensions($event->getComposer());
 
     $extensions = [];
-    foreach($packages as $package) {
+    foreach ($packages as $package) {
       $extensions[] = $package->getName();
     }
 

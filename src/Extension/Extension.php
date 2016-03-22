@@ -99,18 +99,14 @@ class Extension implements \Serializable {
    *   the file does not exist.
    */
   public function getComposerJson() {
-    $local_composer_file = $this->getPath() . '/composer.json';
-    if (file_exists($local_composer_file)) {
-      return $local_composer_file;
-    }
-    return '';
+    return $this->getPath() . '/composer.json';
   }
 
   /**
    * @return \Composer\Json\JsonFile
    */
   public function getComposerJsonFile() {
-    return new JsonFile($this->getComposerJson());
+    return new JsonFile($this->root . '/' . $this->getComposerJson());
   }
 
   /**

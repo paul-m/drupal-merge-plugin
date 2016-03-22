@@ -35,7 +35,7 @@ use Wikimedia\Composer\MergePlugin as WikimediaMergePlugin;
 class MergePlugin extends WikimediaMergePlugin {
 
   /**
-   * Offical package name
+   * Offical package name.
    */
   const PACKAGE_NAME = 'mile23/drupal-merge-plugin';
 
@@ -44,6 +44,7 @@ class MergePlugin extends WikimediaMergePlugin {
    */
   public function activate(Composer $composer, IOInterface $io) {
     parent::activate($composer, $io);
+    // Replace the wikimedia logger with ours.
     $this->logger = new Logger('drupal-merge-plugin', $io);
   }
 
@@ -53,12 +54,12 @@ class MergePlugin extends WikimediaMergePlugin {
   public static function getSubscribedEvents() {
     return array_merge(
       parent::getSubscribedEvents(), [
-      // We add package pre- events because Composer doesn't store our
-      // dependencies. Therefore we have to rebuild every time we do anything.
-      PackageEvents::PRE_PACKAGE_UNINSTALL => 'onDrupalPackageEvent',
-      PackageEvents::PRE_PACKAGE_UPDATE => 'onDrupalPackageEvent',
-      // We also want to be able to brag.
-      PluginEvents::COMMAND => 'onCommand',
+        // We add package pre- events because Composer doesn't store our
+        // dependencies. Therefore we have to rebuild every time we do anything.
+        PackageEvents::PRE_PACKAGE_UNINSTALL => 'onDrupalPackageEvent',
+        PackageEvents::PRE_PACKAGE_UPDATE => 'onDrupalPackageEvent',
+        // We also want to be able to brag.
+        PluginEvents::COMMAND => 'onCommand',
       ]
     );
   }
@@ -67,16 +68,18 @@ class MergePlugin extends WikimediaMergePlugin {
    * Handle events dealing only with packages.
    *
    * @param PackageEvent $e
+   *   The event object.
    */
   public function onDrupalPackageEvent(PackageEvent $e) {
     error_log('>> ' . __METHOD__);
-    $this->mergeForDrupalRootPackage($this->composer->getPackage());
+    $this->mergeForDrupalRootPackage($e->getComposer());
   }
 
   /**
    * Tell everyone we're here.
    *
    * @param CommandEvent $e
+   *   The event object.
    */
   public function onCommand(CommandEvent $e) {
     error_log('>> ' . __METHOD__);
@@ -92,22 +95,20 @@ class MergePlugin extends WikimediaMergePlugin {
     // Wikimedia is also registered as a plugin, so it will have a chance to
     // merge it's dependencies. Here we override and add our module
     // dependencies.
-    $this->mergeForDrupalRootPackage($this->composer->getPackage());
+    $this->mergeForDrupalRootPackage($event->getComposer());
   }
 
   /**
    * {@inheritdoc}
    */
   public function onPostPackageInstall(PackageEvent $event) {
-    error_log('>> ' . __METHOD__);
     // This is a duplicate of Wikimedia's onPostPackageInstall.
-    // @todo: Figure out how to make Logger available.
     $op = $event->getOperation();
     if ($op instanceof InstallOperation) {
       $package = $op->getPackage()->getName();
       if ($package === self::PACKAGE_NAME) {
-        // $this->logger->info(self::PACKAGE_NAME . ' installed');
-        $this->state->setFirstInstall(true);
+        $this->logger->info(self::PACKAGE_NAME . ' installed');
+        $this->state->setFirstInstall(TRUE);
         $this->state->setLocked(
           $event->getComposer()->getLocker()->isLocked()
         );
@@ -116,20 +117,34 @@ class MergePlugin extends WikimediaMergePlugin {
   }
 
   /**
-   * Helper method to do the Drupal dependency merging.
+   * Merge Drupal dependencies from extensions.
    *
-   * @param RootPackageInterface $package
+   * @param \Composer\Composer $composer
+   *   The Composer object.
    */
-  protected function mergeForDrupalRootPackage(RootPackageInterface $package) {
+  protected function mergeForDrupalRootPackage(Composer $composer) {
     if ($this->state->isFirstInstall()) {
       return;
     }
+    $packge = $composer->getPackage();
     // Determine whether the package is a Drupal project.
     if ($package->getName() == 'drupal/drupal' && $package->getType() == 'project') {
       // @todo: There has to be a better way to get the root directory.
       $root_dir = realpath(dirname(Factory::getComposerFile()));
       // Perform the merge.
-      $this->mergeModuleDependenciesForRoot($root_dir, $package);
+
+      $finder = new ComposerFinder();
+      $unmanaged_extensions = $finder->getUnmanagedComposerExtensions($root_dir, $composer);
+
+      $extensions = [];
+      foreach ($unmanaged_extensions as $unmanaged_extension) {
+        $extensions[] = $unmanaged_extension->getName();
+      }
+
+
+
+
+      $this->mergeExtensionDependenciesForRoot($root_dir, $package);
       return;
     }
     $this->logger->debug('merge rejected for: ' . $package->getName());
@@ -145,46 +160,18 @@ class MergePlugin extends WikimediaMergePlugin {
    * @param string $root_dir
    *   Root directory of the Drupal installation. Usually this is the same as
    *   the directory where the composer.json file lives, but it might not be.
-   * @param Package\RootPackageInterface $root_package
-   *   The package into which to merge the discovered composer.json files.
+   * @param \Composer\Composer $composer
+   *   The Composer object.
    */
-  protected function mergeModuleDependenciesForRoot($root_dir, RootPackageInterface $root_package) {
-    // We're using our own fork of Drupal's ExtensionDiscovery.
-    $discovery = new ExtensionDiscovery($root_dir, FALSE);
+  protected function mergeExtensionDependenciesForRoot($root_dir, Composer $composer) {
+    // Glean the root package.
+    $root_package = $composer->getPackage();
 
-    // Scan for modules.
-    // @todo: Determine whether we should scan for profiles, themes.
-    $modules = $discovery->scan('module', $root_package->isDev());
-
-    foreach ($modules as $module_name => $module) {
-      $local_composer_file = dirname($module->getPathname()) . '/composer.json';
-      if (file_exists($root_dir . '/' . $local_composer_file)) {
-        // Have the plugin merge the composer.json file.
-        $this->mergeFile($root_package, $local_composer_file);
-      }
+    $finder = new ComposerFinder();
+    $unmanaged_dependencies = $finder->getUnmanagedComposerExtensions($root_dir, $composer);
+    foreach($unmanaged_dependencies as $dependency) {
+        $this->mergeFile($root_package, $dependency->getComposerJsonFile()->getPath());
     }
-  }
-
-  /**
-   * Get a list of all modules currently managed by the root package.
-   *
-   * Currently unused.
-   *
-   * @return Composer\Package\PackageInterface[]
-   *   Composer packages representing Drupal modules managed in the root
-   *   package.
-   */
-  protected function getComposerManagedModules() {
-    $local_repository = $this->composer->getRepositoryManager()->getLocalRepository();
-    $packages = $local_repository->getPackages();
-
-    $composer_managed_modules = [];
-    foreach ($packages as $installed_dependency) {
-      if ($installed_dependency->getType() == 'drupal-module') {
-        $composer_managed_modules[] = $installed_dependency;
-      }
-    }
-    return $composer_managed_modules;
   }
 
 }

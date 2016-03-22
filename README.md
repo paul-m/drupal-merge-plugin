@@ -8,8 +8,6 @@ What?
 
 `drupal-merge-plugin` is a Composer plugin that allows Drupal modules to specify their own Composer-based dependencies without extra infrastructure.
 
-Note that this plugin is fully compatible with Drupal multisite. It will discover and reconcile all dependencies for all modules present in the Drupal installation, across the different sites. They will all share the same `vendor/` directory where other Drupal dependencies reside.
-
 It builds on the Wikimedia project's `composer-merge-plugin`, and inherits some of that project's behaviors.
 
 You can read the documentation for Wikimedia's `composer-merge-plugin` here: https://github.com/wikimedia/composer-merge-plugin
@@ -36,23 +34,37 @@ Then you can add Drupal modules:
 
 	$ composer require drupal/your-module-here
 
+You can add command-line scripts to your `composer.json` like this:
+
+    "scripts": {
+        "list-extensions": "Mile23\\DrupalMerge\\Script::listExtensions",
+        "list-managed-extensions": "Mile23\\DrupalMerge\\Script::listManagedExtensions",
+        "list-unmanaged-extensions": "Mile23\\DrupalMerge\\Script::listUnmanagedExtensions",
+    },
+
+Once you've done that, you can list available modules by their Composer status.
+
+- `composer list-extensions` gives you all discoverable Drupal extensions which have a `composer.json` file.
+- `composer list-managed-extensions` gives you the Drupal extensions which are in the `requires` section of the current Composer package. Restated: If the extension is in your `composer.json` file, it appears in this list.
+- `composer list-unmanaged-extensions` gives you a list of modules which have `composer.json` files, but which are not listed as dependencies in the current project. These would be extensions downloaded as tarballs, for instance.
+
 Why?
 ----
 
-Adding packagist.drupal-composer.org to your composer.json file is enough to help it find Drupal modules, and install them along with their dependencies.
+Adding `packagist.drupal-composer.org` to your `composer.json` file is enough to help it find Drupal modules, and install them along with their dependencies.
 
 However, if you need to update or re-install (because, for instance, your `vendor/` directory is missing), that won't be enough to manage those dependencies.
 
 With this plugin, that's possible.
 
-Once you're using this plugin, it will search for `composer.json` files within the dependencies of your Drupal project, and then try to satisfy them. If they can't be satisfied (due to version constraints, etc.) then Composer will tell you.
-
-Drupal modules SHOULD NOT specify that they depend on this plugin. In the rest of the Composer world, this would be a reasonable thing to do, but in the context of the many Drupalisms, this would be an anti-pattern.
-
-This plugin's behavior might also conflict with other Composer solutions built by the Drupal community.
+Once you're using this plugin, it will search for `composer.json` files within the extensions present in your Drupal project's file system, and then try to satisfy them. If they can't be satisfied (due to version constraints, etc.) then Composer will tell you.
 
 What Should My Contrib Module's `composer.json` File Look Like?
 --
+
+Drupal modules SHOULD NOT specify that they depend on this plugin.
+
+This plugin's behavior might also conflict with other Composer solutions built by the Drupal community.
 
 You can supply a `composer.json` file per module, at any folder depth supported by normal Drupal module discovery.
 

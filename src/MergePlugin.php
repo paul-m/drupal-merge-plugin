@@ -71,7 +71,6 @@ class MergePlugin extends WikimediaMergePlugin {
    *   The event object.
    */
   public function onDrupalPackageEvent(PackageEvent $e) {
-    error_log('>> ' . __METHOD__);
     $this->mergeForDrupalRootPackage($e->getComposer());
   }
 
@@ -82,7 +81,6 @@ class MergePlugin extends WikimediaMergePlugin {
    *   The event object.
    */
   public function onCommand(CommandEvent $e) {
-    error_log('>> ' . __METHOD__);
     $output = $e->getOutput();
     $output->writeln('. Using ' . self::PACKAGE_NAME);
   }
@@ -91,7 +89,6 @@ class MergePlugin extends WikimediaMergePlugin {
    * {@inheritdoc}
    */
   public function onInstallUpdateOrDump(Event $event) {
-    error_log('>> ' . __METHOD__);
     // Wikimedia is also registered as a plugin, so it will have a chance to
     // merge it's dependencies. Here we override and add our module
     // dependencies.

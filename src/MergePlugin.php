@@ -144,7 +144,7 @@ class MergePlugin extends WikimediaMergePlugin {
 
 
 
-      $this->mergeExtensionDependenciesForRoot($root_dir, $package);
+      $this->mergeExtensionDependenciesForRoot($root_dir, $composer);
       return;
     }
     $this->logger->debug('merge rejected for: ' . $package->getName());

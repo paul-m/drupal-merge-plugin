@@ -8,10 +8,22 @@ What?
 
 `drupal-merge-plugin` is a Composer plugin that allows Drupal modules to specify their own Composer-based dependencies without extra infrastructure.
 
+This plugin is an evolution of the `plugin_manager` module concept, using Drupal extension discovery to merge Composer-based dependencies.
+
 It builds on the Wikimedia project's `composer-merge-plugin`, and inherits some of that project's behaviors.
 
 You can read the documentation for Wikimedia's `composer-merge-plugin` here: https://github.com/wikimedia/composer-merge-plugin
 
+Why?
+----
+
+Adding `packagist.drupal-composer.org` to your `composer.json` file is enough to help it find Drupal modules, and install them along with their dependencies.
+
+However, if you need to update, or re-install without a lock file, that won't be enough to manage those dependencies.
+
+With this plugin, that's possible.
+
+Once you're using this plugin, it will search for `composer.json` files within the extensions present in your Drupal project's file system, and then try to satisfy them. If they can't be satisfied (due to version constraints, etc.) then Composer will tell you.
 
 How?
 --
@@ -48,16 +60,6 @@ Once you've done that, you can list available modules by their Composer status.
 - `composer list-managed-extensions` gives you the Drupal extensions which are in the `requires` section of the current Composer package. Restated: If the extension is in your `composer.json` file, it appears in this list.
 - `composer list-unmanaged-extensions` gives you a list of modules which have `composer.json` files, but which are not listed as dependencies in the current project. These would be extensions downloaded as tarballs, for instance.
 
-Why?
-----
-
-Adding `packagist.drupal-composer.org` to your `composer.json` file is enough to help it find Drupal modules, and install them along with their dependencies.
-
-However, if you need to update or re-install (because, for instance, your `vendor/` directory is missing), that won't be enough to manage those dependencies.
-
-With this plugin, that's possible.
-
-Once you're using this plugin, it will search for `composer.json` files within the extensions present in your Drupal project's file system, and then try to satisfy them. If they can't be satisfied (due to version constraints, etc.) then Composer will tell you.
 
 What Should My Contrib Module's `composer.json` File Look Like?
 --

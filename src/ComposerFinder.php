@@ -63,7 +63,6 @@ class ComposerFinder {
   public function getComposerManagedExtensions(WritableRepositoryInterface $local_repository) {
     $types = ['drupal-module', 'drupal-theme', 'drupal-profile'];
 
-//    $local_repository = $composer->getRepositoryManager()->getLocalRepository();
     $packages = $local_repository->getPackages();
 
     $composer_managed_extensions = [];
@@ -80,7 +79,7 @@ class ComposerFinder {
    * Finds unmanaged extensions.
    *
    * Returns a list of extensions with Composer dependencies in the file system
-   * which aren't present in the project composer.json file.
+   * which aren't present in the root project composer.json file.
    *
    * @param string $root_dir
    *   Root directory of the Drupal installation.

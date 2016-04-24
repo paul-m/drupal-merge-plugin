@@ -82,7 +82,7 @@ class MergePlugin extends WikimediaMergePlugin {
    */
   public function onCommand(CommandEvent $e) {
     $output = $e->getOutput();
-    $output->writeln('. Using ' . self::PACKAGE_NAME);
+    $output->writeln('<info>Using ' . self::PACKAGE_NAME . '</info>');
   }
 
   /**

@@ -38,12 +38,16 @@ At the command line, type this:
 
 This adds the plugin to your Drupal project.
 
-In order to get Drupal extensions using Composer, you must then add the special Drupal Packagist clone to your `repositories` section:
+In order to get Drupal extensions using Composer, you must then add the special Drupal Packagist clone to your `repositories` section. There are instructions here: https://www.drupal.org/node/2718229
 
-	"repositories": {
-        "type": "composer",
-        "url": "https://packagist.drupal-composer.org"
-    },
+Basically, add a repository like this to your `composer.json` file:
+
+    "repositories": {
+        "drupal": {
+            "type": "composer",
+            "url":  "https://packages.drupal.org/8"
+        }
+    }
 
 Then you can add Drupal extensions:
 
